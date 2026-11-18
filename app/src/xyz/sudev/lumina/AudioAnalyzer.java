@@ -11,14 +11,19 @@ import be.tarsos.dsp.onsets.OnsetHandler;
 import be.tarsos.dsp.onsets.PercussionOnsetDetector;
 
 /**
- * Audio input = Android Visualizer PCM snapshots of the global output mix (session 0), ~20/s.
- * (A continuous stream would need MediaProjection, which Android 15+ kills on screen lock.)
+ * Audio input = Android Visualizer PCM snapshots of the global output mix
+ * (session 0), ~20/s.
+ * (A continuous stream would need MediaProjection, which Android 15+ kills on
+ * screen lock.)
  *
  * Two detectors (switchable in the app):
- *  - KICK (default): {@link KickDetector} (pure Java, also runs on desktop via beat_detection/Run.java).
- *  - TARSOS: TarsosDSP's PercussionOnsetDetector as-is (broadband drum-hit detector).
+ * - KICK (default): {@link KickDetector} (pure Java, also runs on desktop via
+ * beat_detection/TestCustom.java).
+ * - TARSOS: TarsosDSP's PercussionOnsetDetector as-is (broadband drum-hit
+ * detector).
  *
- * Watchdog: if Android says music is playing but the Visualizer went quiet (happens after
+ * Watchdog: if Android says music is playing but the Visualizer went quiet
+ * (happens after
  * pause/resume when audio gets re-routed), recreate it.
  */
 public class AudioAnalyzer {
@@ -27,7 +32,7 @@ public class AudioAnalyzer {
     private final AudioManager audioManager;
     private Visualizer vis;
 
-    public volatile float bass;              // 0..1, for border thickness
+    public volatile float bass; // 0..1, for border thickness
     public volatile int beatCount, restarts;
     public volatile long lastDataMs, lastFrameMs;
     public volatile String error;
@@ -56,17 +61,28 @@ public class AudioAnalyzer {
     }
 
     public synchronized void start() {
-        if (vis != null) return;
+        if (vis != null)
+            return;
         try {
             vis = new Visualizer(0);
             vis.setEnabled(false);
             int[] range = Visualizer.getCaptureSizeRange();
             vis.setCaptureSize(Math.min(1024, range[1]));
-            // AS_PLAYED: NORMALIZED rescales each snapshot on its own, which fakes hits in quiet parts
-            try { vis.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED); } catch (Throwable ignored) {}
+            // AS_PLAYED: NORMALIZED rescales each snapshot on its own, which fakes hits in
+            // quiet parts
+            try {
+                vis.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED);
+            } catch (Throwable ignored) {
+            }
             vis.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
-                @Override public void onWaveFormDataCapture(Visualizer v, byte[] w, int sr) { onWave(w, sr); }
-                @Override public void onFftDataCapture(Visualizer v, byte[] f, int sr) {}
+                @Override
+                public void onWaveFormDataCapture(Visualizer v, byte[] w, int sr) {
+                    onWave(w, sr);
+                }
+
+                @Override
+                public void onFftDataCapture(Visualizer v, byte[] f, int sr) {
+                }
             }, Visualizer.getMaxCaptureRate(), true, false);
             vis.setEnabled(true);
             error = null;
@@ -79,28 +95,48 @@ public class AudioAnalyzer {
         lastRestartMs = SystemClock.uptimeMillis();
     }
 
-    public synchronized void stop() { release(); }
+    public synchronized void stop() {
+        release();
+    }
 
     private void release() {
         if (vis != null) {
-            try { vis.setEnabled(false); } catch (Throwable ignored) {}
-            try { vis.release(); } catch (Throwable ignored) {}
+            try {
+                vis.setEnabled(false);
+            } catch (Throwable ignored) {
+            }
+            try {
+                vis.release();
+            } catch (Throwable ignored) {
+            }
             vis = null;
         }
     }
 
-    /** Call often (every frame is fine). Recreates the Visualizer if music plays but nothing arrives. */
+    /**
+     * Call often (every frame is fine). Recreates the Visualizer if music plays but
+     * nothing arrives.
+     */
     public void watchdog() {
         long now = SystemClock.uptimeMillis();
-        if (now - lastWatchMs < 500) return;
+        if (now - lastWatchMs < 500)
+            return;
         lastWatchMs = now;
-        if (audioManager == null) return;
+        if (audioManager == null)
+            return;
         boolean playing;
-        try { playing = audioManager.isMusicActive(); } catch (Throwable t) { return; }
-        if (!playing) return;
+        try {
+            playing = audioManager.isMusicActive();
+        } catch (Throwable t) {
+            return;
+        }
+        if (!playing)
+            return;
         boolean deaf = now - lastDataMs > 1200 || now - lastFrameMs > 1200;
         if (deaf && now - lastRestartMs > 2000) {
-            synchronized (this) { release(); }
+            synchronized (this) {
+                release();
+            }
             start();
             restarts++;
         }
@@ -112,7 +148,8 @@ public class AudioAnalyzer {
 
         boolean beat = kick.process(w, samplingRateMilliHz, now, mode == MODE_KICK);
         bass = kick.bass;
-        if (!kick.hasSound) return;               // silence / paused
+        if (!kick.hasSound)
+            return; // silence / paused
         lastDataMs = now;
 
         if (mode == MODE_TARSOS) {
@@ -127,12 +164,16 @@ public class AudioAnalyzer {
 
     private void runTarsos(float sr, int n, long now) {
         if (detector == null || detectorRate != sr || detectorSize != n || now - lastSoundMs > 400) {
-            double sens = 20 + 0.6 * sensitivity;        // Tarsos default 20
-            double thrDb = 9 - 0.04 * sensitivity;       // Tarsos default 8 dB
+            double sens = 20 + 0.6 * sensitivity; // Tarsos default 20
+            double thrDb = 9 - 0.04 * sensitivity; // Tarsos default 8 dB
             detector = new PercussionOnsetDetector(sr, n, new OnsetHandler() {
-                @Override public void handleOnset(double time, double salience) {
+                @Override
+                public void handleOnset(double time, double salience) {
                     long t = SystemClock.uptimeMillis();
-                    if (t - lastBeatMs > 200) { lastBeatMs = t; beatCount++; }
+                    if (t - lastBeatMs > 200) {
+                        lastBeatMs = t;
+                        beatCount++;
+                    }
                 }
             }, sens, thrDb);
             event = new AudioEvent(new TarsosDSPAudioFormat(sr, 16, 1, true, false));
