@@ -121,6 +121,35 @@ public class MainActivity extends Activity {
         });
         panel.addView(sens, new LinearLayout.LayoutParams(-1, (int) (40 * d)));
 
+        final TextView radiusLabel = new TextView(this);
+        radiusLabel.setTextColor(0xCCFFFFFF);
+        radiusLabel.setTextSize(13);
+        radiusLabel.setGravity(Gravity.CENTER);
+        panel.addView(radiusLabel);
+        SeekBar radius = new SeekBar(this);
+        int rv = getSharedPreferences("beat", MODE_PRIVATE).getInt("radius", BorderRenderer.DEFAULT_RADIUS);
+        radius.setMax(100);
+        radius.setProgress(rv);
+        radiusLabel.setText("Border radius: " + rv);
+        renderer.setCornerRadius(rv);
+        radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar s, int p, boolean user) {
+                radiusLabel.setText("Border radius: " + p);
+                renderer.setCornerRadius(p);
+                getSharedPreferences("beat", MODE_PRIVATE).edit().putInt("radius", p).apply();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar s) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar s) {
+            }
+        });
+        panel.addView(radius, new LinearLayout.LayoutParams(-1, (int) (40 * d)));
+
         final Button modeBtn = makeButton(modeLabel(), d);
         modeBtn.setOnClickListener(new View.OnClickListener() {
             @Override

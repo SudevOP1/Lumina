@@ -44,6 +44,15 @@ public class BorderRenderer {
     // per-frame profile params
     private float thick, glowAmt, ringTravel;
 
+    /** corner radius as a fraction of screen width (0.105 matches most phones) */
+    private float radiusFrac = DEFAULT_RADIUS / 400f;
+    public static final int DEFAULT_RADIUS = 42; // slider units: 0..100 → 0..25% of width
+
+    /** @param slider 0..100, maps to 0..25% of the screen width */
+    public void setCornerRadius(int slider) {
+        radiusFrac = Math.max(0, Math.min(100, slider)) / 400f;
+    }
+
     public BorderRenderer(float density) {
         this.density = density;
         text.setColor(0xCCFFFFFF);
@@ -174,7 +183,8 @@ public class BorderRenderer {
         if (w != pw || h != ph)
             buildPaths(w, h);
 
-        float R = Math.round(w * 0.105f);
+        // RadialGradient needs radius > 0; keep it below half the short side
+        float R = Math.max(1f, Math.min(Math.round(w * radiusFrac), Math.min(w, h) / 2f - 1f));
         thick = density * (7f + 34f * env + 12f * pulse);
         glowAmt = 0.35f + 0.45f * env + 0.3f * pulse;
         ringTravel = w * 0.22f;

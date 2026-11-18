@@ -40,6 +40,8 @@ public class BeatWallpaperService extends WallpaperService {
             visible = v;
             Choreographer.getInstance().removeFrameCallback(this);
             if (v) {
+                renderer.setCornerRadius(getSharedPreferences("beat", MODE_PRIVATE)
+                        .getInt("radius", BorderRenderer.DEFAULT_RADIUS));
                 micOk = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
                 if (micOk) {
                     android.content.SharedPreferences p = getSharedPreferences("beat", MODE_PRIVATE);
