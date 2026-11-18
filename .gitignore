@@ -1,3 +1,5 @@
 beat_detection/out/
 beat_detection/lib/
 beat_detection/audio/
+
+.vscode/
