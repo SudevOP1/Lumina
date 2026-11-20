@@ -3,3 +3,5 @@ beat_detection/lib/
 beat_detection/audio/
 
 .vscode/
+
+mobile-app/build/
