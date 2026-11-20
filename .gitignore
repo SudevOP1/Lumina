@@ -5,3 +5,5 @@ beat_detection/audio/
 .vscode/
 
 mobile-app/build/
+
+desktop-app/build/
