@@ -7,3 +7,8 @@ beat_detection/audio/
 mobile-app/build/
 
 desktop-app/build/
+
+mobile-app/obj/
+mobile-app/gen/
+*.jks
+*.keystore
