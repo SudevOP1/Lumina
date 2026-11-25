@@ -1,13 +1,20 @@
+# beat detection
 beat_detection/out/
 beat_detection/lib/
 beat_detection/audio/
 
 .vscode/
+temp/
 
+# build files
 mobile-app/build/
-
 desktop-app/build/
 
+# release files
+mobile-app/releases/
+desktop-app/releases/
+
+# generated files
 mobile-app/obj/
 mobile-app/gen/
 *.jks
